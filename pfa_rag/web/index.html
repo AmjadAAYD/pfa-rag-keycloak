@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Recherche documentaire · PFA</title>
+  <link rel="stylesheet" href="/assets/style.css">
+  <script type="module" src="/assets/app.js"></script>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Recherche documentaire</h1>
+      <button type="button" id="login" hidden>Se connecter</button>
+      <button type="button" id="logout" hidden>Se déconnecter</button>
+    </header>
+    <p id="identity" hidden></p>
+    <p id="status" role="status">Connexion à Keycloak…</p>
+
+    <form id="search" hidden>
+      <label for="question">Question</label>
+      <textarea id="question" required maxlength="1500" rows="3">Quelle est la priorité de mon département pour le projet Atlas ?</textarea>
+      <div class="actions">
+        <label for="strategy">Stratégie</label>
+        <select id="strategy">
+          <option value="pre_filter">A · Filtrer pendant la recherche</option>
+          <option value="post_filter">B · Filtrer après la recherche</option>
+        </select>
+        <button type="submit" id="submit">Répondre</button>
+      </div>
+    </form>
+
+    <section id="answer" aria-labelledby="answer-title" hidden>
+      <h2 id="answer-title">Réponse</h2>
+      <p id="answer-text"></p>
+    </section>
+
+    <section id="results" aria-labelledby="results-title" hidden>
+      <h2 id="results-title">Sources citées</h2>
+      <ol id="sources"></ol>
+    </section>
+
+    <section id="document" aria-labelledby="document-title" hidden>
+      <h2 id="document-title"></h2>
+      <p id="document-text"></p>
+    </section>
+  </main>
+</body>
+</html>

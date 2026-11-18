@@ -1,0 +1,7 @@
+{
+  "name": "pfa-rag-browser",
+  "private": true,
+  "dependencies": {
+    "keycloak-js": "26.2.5"
+  }
+}

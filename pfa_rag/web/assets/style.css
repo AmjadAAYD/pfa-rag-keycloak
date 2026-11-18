@@ -1,0 +1,41 @@
+:root {
+  color-scheme: light;
+  font-family: Inter, system-ui, sans-serif;
+  color: #142822;
+  background: #f4f7f4;
+}
+* { box-sizing: border-box; }
+body { margin: 0; }
+main { max-width: 52rem; padding: 3rem 1.25rem; margin: 0 auto; }
+header, .actions { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; }
+header { justify-content: space-between; gap: 1.25rem; }
+h1 { font-size: clamp(1.5rem, 4vw, 2.35rem); line-height: 1.12; margin: 0; letter-spacing: -.04em; }
+h2 { margin: 0 0 1rem; font-size: 1.25rem; }
+[hidden] { display: none !important; }
+#identity, #status { color: #3f5950; }
+#status:empty { margin: 0; }
+form, section {
+  background: #fff;
+  padding: 1.25rem;
+  border: 1px solid #cad8cf;
+  border-radius: .6rem;
+  margin-top: 1.1rem;
+}
+label { font-weight: 650; }
+textarea, select, button { font: inherit; }
+textarea, select {
+  background: #fff;
+  color: inherit;
+  border: 1px solid #93a99b;
+  border-radius: .35rem;
+  padding: .6rem .7rem;
+}
+textarea { display: block; width: 100%; margin: .5rem 0 1rem; resize: vertical; }
+button { cursor: pointer; border: 0; border-radius: .35rem; padding: .62rem .85rem; background: #14543d; color: #fff; }
+button:disabled { opacity: .65; cursor: wait; }
+:is(button, select, textarea):focus-visible { outline: 2px solid #0966b0; outline-offset: 3px; }
+ol { padding-left: 1.35rem; margin: 0; }
+li + li { margin-top: .8rem; }
+.source { text-align: left; padding: .15rem 0; background: none; color: #14543d; text-decoration: underline; }
+.source-id { display: block; font-size: .8rem; color: #3f5950; overflow-wrap: anywhere; }
+#answer-text, #document-text { line-height: 1.6; margin-bottom: 0; white-space: pre-wrap; }

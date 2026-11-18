@@ -1,0 +1,27 @@
+name: pfa-rag-keycloak
+
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.8.2
+    command: ["start-dev", "--import-realm"]
+    ports:
+      - "127.0.0.1:8088:8080"
+    environment:
+      KC_HOSTNAME: http://localhost:8088
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${PFA_KEYCLOAK_ADMIN_USERNAME:-pfa-admin}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${PFA_KEYCLOAK_ADMIN_PASSWORD:?Set PFA_KEYCLOAK_ADMIN_PASSWORD in .env}
+      PFA_DEMO_PASSWORD: ${PFA_DEMO_PASSWORD:?Set PFA_DEMO_PASSWORD in .env}
+    volumes:
+      - keycloak_data:/opt/keycloak/data
+      - ./infra/keycloak/pfa-rag-realm.json:/opt/keycloak/data/import/pfa-rag-realm.json:ro
+
+  qdrant:
+    image: qdrant/qdrant:v1.18.3
+    ports:
+      - "127.0.0.1:6333:6333"
+    volumes:
+      - qdrant_data:/qdrant/storage
+
+volumes:
+  keycloak_data:
+  qdrant_data:

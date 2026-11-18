@@ -1,0 +1,215 @@
+{
+  "realm": "pfa-rag",
+  "displayName": "PFA RAG",
+  "enabled": true,
+  "sslRequired": "external",
+  "accessTokenLifespan": 300,
+  "registrationAllowed": false,
+  "roles": {
+    "client": {
+      "pfa-api": [
+        {
+          "name": "rh"
+        },
+        {
+          "name": "finance"
+        },
+        {
+          "name": "informatique"
+        },
+        {
+          "name": "operations"
+        },
+        {
+          "name": "direction"
+        }
+      ]
+    }
+  },
+  "clients": [
+    {
+      "clientId": "pfa-api",
+      "protocol": "openid-connect",
+      "enabled": true,
+      "publicClient": false,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false
+    },
+    {
+      "clientId": "pfa-web",
+      "protocol": "openid-connect",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "fullScopeAllowed": true,
+      "redirectUris": [
+        "http://localhost:8000/"
+      ],
+      "webOrigins": [
+        "http://localhost:8000"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:8000/"
+      },
+      "defaultClientScopes": [
+        "basic",
+        "profile",
+        "roles",
+        "web-origins"
+      ],
+      "protocolMappers": [
+        {
+          "name": "pfa-api audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.client.audience": "pfa-api",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "demo-rh",
+      "enabled": true,
+      "email": "demo-rh@example.invalid",
+      "emailVerified": true,
+      "firstName": "Rh",
+      "lastName": "PFA",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "${PFA_DEMO_PASSWORD}",
+          "temporary": false
+        }
+      ],
+      "clientRoles": {
+        "pfa-api": [
+          "rh"
+        ]
+      }
+    },
+    {
+      "username": "demo-finance",
+      "enabled": true,
+      "email": "demo-finance@example.invalid",
+      "emailVerified": true,
+      "firstName": "Finance",
+      "lastName": "PFA",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "${PFA_DEMO_PASSWORD}",
+          "temporary": false
+        }
+      ],
+      "clientRoles": {
+        "pfa-api": [
+          "finance"
+        ]
+      }
+    },
+    {
+      "username": "demo-informatique",
+      "enabled": true,
+      "email": "demo-informatique@example.invalid",
+      "emailVerified": true,
+      "firstName": "Informatique",
+      "lastName": "PFA",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "${PFA_DEMO_PASSWORD}",
+          "temporary": false
+        }
+      ],
+      "clientRoles": {
+        "pfa-api": [
+          "informatique"
+        ]
+      }
+    },
+    {
+      "username": "demo-operations",
+      "enabled": true,
+      "email": "demo-operations@example.invalid",
+      "emailVerified": true,
+      "firstName": "Operations",
+      "lastName": "PFA",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "${PFA_DEMO_PASSWORD}",
+          "temporary": false
+        }
+      ],
+      "clientRoles": {
+        "pfa-api": [
+          "operations"
+        ]
+      }
+    },
+    {
+      "username": "demo-direction",
+      "enabled": true,
+      "email": "demo-direction@example.invalid",
+      "emailVerified": true,
+      "firstName": "Direction",
+      "lastName": "PFA",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "${PFA_DEMO_PASSWORD}",
+          "temporary": false
+        }
+      ],
+      "clientRoles": {
+        "pfa-api": [
+          "direction"
+        ]
+      }
+    },
+    {
+      "username": "demo-multi",
+      "enabled": true,
+      "email": "demo-multi@example.invalid",
+      "emailVerified": true,
+      "firstName": "Multi",
+      "lastName": "PFA",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "${PFA_DEMO_PASSWORD}",
+          "temporary": false
+        }
+      ],
+      "clientRoles": {
+        "pfa-api": [
+          "finance",
+          "informatique"
+        ]
+      }
+    },
+    {
+      "username": "demo-sans-role",
+      "enabled": true,
+      "email": "demo-sans-role@example.invalid",
+      "emailVerified": true,
+      "firstName": "Sans-role",
+      "lastName": "PFA",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "${PFA_DEMO_PASSWORD}",
+          "temporary": false
+        }
+      ]
+    }
+  ]
+}

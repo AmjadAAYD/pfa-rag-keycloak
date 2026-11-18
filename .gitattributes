@@ -1,1 +1,3 @@
 data/corpus.jsonl text eol=lf
+benchmarks/**/*.jsonl text eol=lf
+benchmarks/*.jsonl text eol=lf
