@@ -11,15 +11,7 @@ Encadrement — Pr. Lalla Amina Charaf
 
 ## Objectif
 
-Construire un RAG qui répond et cite des documents autorisés pour l’utilisateur connecté via Keycloak (OIDC). Comparer le filtrage des droits pendant la recherche vectorielle et après la recherche, avant l’envoi du contexte au modèle. Mesurer les fuites, le Recall@5, la fidélité et la latence.
-
-## Modèle local
-
-Ollama · `qwen3.5:9b` · identifiant local affiché `56671c2ab938`.
-
-## Premier jalon
-
-Préparer le corpus fictif (au moins 300 documents, 4 départements et 3 niveaux de confidentialité), la matrice de droits, l’architecture et la note de cadrage de deux pages pour la séance 2.
+Comparer le filtrage des droits pendant la recherche vectorielle (A) et après la récupération des candidats (B). L’application se connecte à Keycloak, recherche dans Qdrant et utilise Ollama pour sélectionner des extraits qui répondent à la question.
 
 ## Contrôle d’accès
 
@@ -41,7 +33,7 @@ La Direction est un rôle transversal. Le corpus est réparti entre les quatre d
 
 Le [corpus JSON Lines](data/corpus.jsonl) contient 300 documents sur 25 projets fictifs communs aux quatre départements. Chaque ligne contient un document, son identifiant, son projet, son département, son niveau de confidentialité, ses rôles autorisés, son titre et son texte.
 
-Depuis la racine du dépôt, installer la dépendance de recherche avec `python -m pip install -r requirements.txt`. Exécuter `python -m unittest discover -s tests -v` pour vérifier le corpus, les droits et les deux stratégies de recherche sur les cas Atlas. Pour régénérer le fichier à l’identique, utiliser la commande suivante, qui conserve les octets UTF-8 sur Windows.
+Depuis la racine du dépôt, installer les dépendances avec `python -m pip install -r requirements.lock.txt`. Exécuter `python -m unittest discover -s tests -v` pour vérifier le corpus, les droits et les deux stratégies de recherche sur les cas Atlas. Pour régénérer le fichier à l’identique, utiliser la commande suivante, qui conserve les octets UTF-8 sur Windows.
 
 ```powershell
 python -c "from pathlib import Path; import subprocess, sys; Path('data/corpus.jsonl').write_bytes(subprocess.check_output([sys.executable, 'generate_corpus.py']))"
@@ -49,47 +41,69 @@ python -c "from pathlib import Path; import subprocess, sys; Path('data/corpus.j
 
 Le [brouillon de cadrage](docs/note-de-cadrage.md) reprend l’architecture et le protocole d’évaluation à valider.
 
-## Prototype de recherche
+## Démarrage sous Windows
 
-`pre_filter` applique les rôles dans Qdrant. `post_filter` recherche les candidats, puis vérifie leurs droits. Les deux chemins vérifient les autorisations du corpus avant de renvoyer les documents. Les tests utilisent des vecteurs fixes pour reproduire les priorités Finance et Informatique, l’accès Direction et l’effet du nombre de candidats.
-
-### Recherche avec Ollama
-
-Depuis la racine du dépôt, avec Ollama démarré et les dépendances Python installées, indexer le corpus puis lancer la même question sous les deux rôles.
-
-```powershell
-ollama pull bge-m3
-python -m pfa_rag index
-python -m pfa_rag search --role finance "Quelle est la priorité de mon département pour le projet Atlas ?"
-python -m pfa_rag search --role informatique "Quelle est la priorité de mon département pour le projet Atlas ?"
-```
-
-Chaque commande de recherche affiche les deux stratégies, les sources autorisées et le nombre de candidats écartés. Le budget par défaut est de cinq résultats et de vingt candidats pour le post-filtrage. Utiliser `--candidate-limit 5` sur la commande `search` pour observer un budget plus petit.
-
-L’index Qdrant local est conservé dans `.pfa-index/`. Son manifeste enregistre l’empreinte du corpus, le digest du modèle, la dimension et le nombre de documents. La commande `index` réutilise un index valide et crée un nouvel index après une modification du corpus ou du modèle.
-
-Les [résultats Atlas](docs/atlas-retrieval-smoke.md) donnent les sources et les rangs observés avec le modèle réel.
-
-## Connexion Keycloak et recherche dans le navigateur
-
-Prérequis locaux — Python 3.12, Node.js, Docker Compose et Ollama. Depuis la racine du dépôt, créer `.env` à partir de `.env.example` si nécessaire. Choisir deux mots de passe locaux distincts pour `PFA_KEYCLOAK_ADMIN_PASSWORD` et `PFA_DEMO_PASSWORD` avant le premier démarrage de Keycloak. Le second est partagé par les comptes fictifs du realm de développement.
+Prérequis — Python 3.12, Node.js, Docker Compose et Ollama. Démarrer Docker Desktop et Ollama. Créer `.env` à partir de `.env.example` et choisir les valeurs de `PFA_KEYCLOAK_ADMIN_PASSWORD` et `PFA_DEMO_PASSWORD` avant le premier démarrage de Keycloak.
 
 ```powershell
 if (-not (Test-Path .env)) { Copy-Item .env.example .env }
-# Renseigner .env avant de démarrer Keycloak.
-python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+# Renseigner .env avant de lancer les services.
+if (-not (Test-Path .venv/Scripts/python.exe)) { python -m venv .venv }
+.\.venv\Scripts\python.exe -m pip install -r requirements.lock.txt
 npm ci --prefix pfa_rag/web
-docker compose up -d keycloak
+docker compose up -d
 ollama pull bge-m3
+ollama pull qwen3.5:9b
 .\.venv\Scripts\python.exe -m pfa_rag index
 .\.venv\Scripts\python.exe -m uvicorn pfa_rag.api:app --host 127.0.0.1 --port 8000
 ```
 
-Ouvrir [l’application locale](http://localhost:8000/) avec l’hôte `localhost` prévu dans les redirections OIDC. Se connecter avec `demo-finance`, `demo-informatique` ou `demo-direction` et le mot de passe `PFA_DEMO_PASSWORD`. Sélectionner A ou B, lancer la recherche Atlas et ouvrir une source. Se déconnecter pour changer de compte. Les comptes `demo-rh`, `demo-operations`, `demo-multi` et `demo-sans-role` complètent les tests.
+Ouvrir [l’application](http://localhost:8000/) avec `localhost`. Les comptes `demo-finance`, `demo-informatique` et `demo-direction` utilisent la valeur locale de `PFA_DEMO_PASSWORD`. Se déconnecter pour changer de rôle. Le volume Keycloak conserve les comptes après l’import initial.
 
-Pour tester la confidentialité, poser « Quel est le montant de la réserve budgétaire du projet Atlas ? » sous Finance puis Direction. Le document `finance-01-confidentiel` est réservé à Direction. Le même contrôle s’applique à l’ouverture d’une source. L’interface affiche les sources ordonnées des deux stratégies de recherche, selon la stratégie sélectionnée.
+La question « Quelle est la priorité de mon département pour le projet Atlas ? » renvoie le plafond de **10 800 MAD** sous Finance et la validation de **quatre scénarios** sous Informatique. Pour « Quel est le montant de la réserve budgétaire du projet Atlas ? », la Direction peut obtenir **1 150 MAD** avec la source confidentielle. Finance reçoit un message d’abstention. Essayer A et B et ouvrir les citations depuis l’interface.
 
-L’API accepte le jeton d’accès Keycloak sur `GET /api/v1/me`, `POST /api/v1/retrievals` et `GET /api/v1/documents/{document_id}`. Les rôles proviennent du jeton vérifié. Tester `/readyz` pour contrôler Keycloak, Ollama et l’index. Les contrats sont disponibles sur [Swagger UI](http://localhost:8000/docs).
+## API et journal
 
-Le volume de développement conserve le realm et ses utilisateurs. Pour modifier un mot de passe après import, utiliser les identifiants du compte dans la console d’administration Keycloak.
+- `GET /api/v1/me` renvoie les rôles du jeton d’accès vérifié.
+- `POST /api/v1/retrievals` renvoie les sources autorisées dans l’ordre de recherche.
+- `POST /api/v1/answers` renvoie une réponse extractive et ses citations, ou une abstention.
+- `GET /api/v1/documents/{document_id}` vérifie les droits à chaque ouverture de source.
+
+L’API transmet à Ollama les passages des seuls documents autorisés. Le modèle renvoie des numéros de passages. Le serveur vérifie ces numéros et restitue le texte depuis le corpus. Le journal SQLite local, `.pfa-state/access.sqlite3`, consigne les identifiants des sources envoyées au modèle avant l’appel et les citations après la réponse.
+
+Consulter [l’état des services](http://localhost:8000/readyz) et [le contrat OpenAPI](http://localhost:8000/docs).
+
+## Tests et mesures
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest discover -s tests -v
+.\.venv\Scripts\python.exe -m benchmarks.build_cases
+.\.venv\Scripts\python.exe -m benchmarks.run --output .pfa-state/evaluation
+.\.venv\Scripts\python.exe -m benchmarks.summarize .pfa-state/evaluation
+```
+
+Le jeu d’évaluation contient **500 questions**, à raison de 100 par rôle, et le jeu de calibration en contient 20. Le benchmark exécute A, B et une référence sans filtre sur le corpus synthétique. La référence est exécutée par le script local. Le budget par défaut de B est de 20 candidats pour un maximum de 5 sources autorisées. La mesure de sensibilité utilise 5, 10, 20, 50 et 300 candidats sur Qdrant 1.18.3.
+
+Le Recall@5 porte sur le document attendu des questions auxquelles le rôle peut répondre. L’exactitude compare le passage retourné à l’annotation, ou vérifie l’abstention attendue. Le taux de passages appuyés mesure la correspondance exacte avec le document cité. Les latences du pipeline additionnent les temps d’embedding, de recherche et de génération. Les appels HTTP signés de la démonstration sont mesurés séparément.
+
+Pour reproduire la figure et le test de connexion sous Chrome, installer Matplotlib et Playwright dans l’environnement de développement.
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install matplotlib==3.10.8 playwright==1.62.0
+.\.venv\Scripts\python.exe -m benchmarks.plot .pfa-state/evaluation/candidate_sweep.csv .pfa-state/evaluation/candidate_sweep.svg
+.\.venv\Scripts\python.exe -m benchmarks.demo --output .pfa-state/evaluation/atlas_http.csv
+```
+
+### Résultats mesurés
+
+| Méthode | Recall@5 autorisé | Exactitude | Contextes non autorisés | Citations non autorisées | Latence p95 du pipeline |
+|---|---:|---:|---:|---:|---:|
+| A · Filtrage dans Qdrant | 100% | 97.6% | 0 | 0 | 1.78 s |
+| B · 20 candidats | 100% | 98.0% | 0 | 0 | 1.72 s |
+| Référence hors ligne | 100% | 68.0% | 398 | 172 | 1.77 s |
+
+Les deux méthodes protégées ont retrouvé le document attendu pour les 290 questions répondables. Sur les 210 abstentions attendues, A en a produit 198 et B en a produit 200. Les réponses restantes ont utilisé des passages autorisés hors sujet.
+
+Le [tableau par rôle](benchmarks/results/summary.csv), les [sorties par question](benchmarks/results/answers.jsonl) et le [manifeste de l’exécution](benchmarks/results/manifest.json) accompagnent ces mesures. Le [balayage des budgets](benchmarks/results/candidate_sweep.csv) est également disponible sous forme de [figure](benchmarks/results/candidate_sweep.svg). Un [contrôle de 30 sorties](benchmarks/results/sample_review.csv) documente un échantillon stratifié par rôle et résultat attendu.
+
+Les [24 appels Atlas signés](benchmarks/results/atlas_http.csv) vérifient les réponses, les citations et le journal dans le navigateur.

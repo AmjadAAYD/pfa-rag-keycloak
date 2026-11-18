@@ -1,0 +1,42 @@
+{
+  "started_at_utc": "2026-11-18T15:40:43.514782+00:00",
+  "revision": "bbc56030b3fd0e6cd46dc26e347dfe8abf43fe0b",
+  "configuration": {
+    "cases_sha256": "e8d59fd4797ac9483fc40f595a8c9c28dc88e48a666fa7dfdb7dfbef1d05f062",
+    "cases": 500,
+    "source_digest": "4e5e24572067f7592df7b846abeba7d9b21d88ea026a7d6e2f98699c60e77983",
+    "corpus_sha256": "b3e348b928863824ec78748aea2e03d6f8867645f8c87ea7ca7406f41f7acc75",
+    "model": "bge-m3:latest",
+    "model_digest": "7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab",
+    "embedding_template": "title-newline-text-v1",
+    "generation_model": "qwen3.5:9b",
+    "generation_digest": "56671c2ab9385f9cfcb404638e32cd62d88e3501d44822208363c010179a3c90",
+    "generation_options": {
+      "temperature": 0,
+      "seed": 17,
+      "num_ctx": 2048,
+      "num_predict": 48
+    },
+    "thinking": false,
+    "qdrant_version": "1.18.3",
+    "qdrant_mode": "docker_exact_cosine",
+    "ollama_version": "0.34.0",
+    "compute": "AMD64",
+    "os": "Windows",
+    "python": "3.12.10",
+    "random_seed": 17,
+    "candidate_budgets": [
+      5,
+      10,
+      20,
+      50,
+      300
+    ],
+    "methods": [
+      "pre_filter",
+      "post_filter",
+      "unfiltered"
+    ],
+    "gpu": "NVIDIA GeForce RTX 5070 Ti Laptop GPU"
+  }
+}
