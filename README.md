@@ -17,7 +17,7 @@ Comparer le filtrage des droits pendant la recherche vectorielle (A) et après l
 
 Le projet retient le RBAC. Keycloak fournit les rôles de l’utilisateur dans le jeton OIDC. Chaque document porte la liste des rôles autorisés à le lire. Les deux stratégies appliquent la même règle d’accès, l’une pendant la recherche vectorielle et l’autre après la recherche, avant l’envoi des fragments à Ollama.
 
-### Matrice proposée pour validation en binôme
+### Matrice RBAC retenue
 
 | Rôle | Commun | Interne au département | Confidentiel |
 |---|---|---|---|
@@ -39,7 +39,7 @@ Depuis la racine du dépôt, installer les dépendances avec `python -m pip inst
 python -c "from pathlib import Path; import subprocess, sys; Path('data/corpus.jsonl').write_bytes(subprocess.check_output([sys.executable, 'generate_corpus.py']))"
 ```
 
-Le [brouillon de cadrage](docs/note-de-cadrage.md) reprend l’architecture et le protocole d’évaluation à valider.
+La [note de cadrage](docs/note-de-cadrage.md) détaille l’architecture retenue, la matrice de droits et le protocole d’évaluation.
 
 ## Démarrage sous Windows
 
@@ -58,7 +58,7 @@ ollama pull qwen3.5:9b
 .\.venv\Scripts\python.exe -m uvicorn pfa_rag.api:app --host 127.0.0.1 --port 8000
 ```
 
-Ouvrir [l’application](http://localhost:8000/) avec `localhost`. Les comptes `demo-finance`, `demo-informatique` et `demo-direction` utilisent la valeur locale de `PFA_DEMO_PASSWORD`. Se déconnecter pour changer de rôle. Le volume Keycloak conserve les comptes après l’import initial.
+Ouvrir [l’application](http://localhost:8000/) avec `localhost`. La commande `python -m pfa_rag index` et l’API FastAPI utilisent une base Qdrant locale embarquée dans `.pfa-index/`, tandis que le conteneur `qdrant` de `compose.yml` (`127.0.0.1:6333`) est utilisé par `benchmarks/run.py`. Les sept comptes de démonstration définis dans [le royaume Keycloak](infra/keycloak/pfa-rag-realm.json) (`demo-rh`, `demo-finance`, `demo-informatique`, `demo-operations`, `demo-direction`, `demo-multi` qui cumule `finance` et `informatique`, et `demo-sans-role` sans rôle applicatif, renvoyant HTTP 403) utilisent tous la valeur locale de `PFA_DEMO_PASSWORD`. Se déconnecter pour changer de rôle. Le volume Keycloak conserve les comptes après l’import initial.
 
 La question « Quelle est la priorité de mon département pour le projet Atlas ? » renvoie le plafond de **10 800 MAD** sous Finance et la validation de **quatre scénarios** sous Informatique. Pour « Quel est le montant de la réserve budgétaire du projet Atlas ? », la Direction peut obtenir **1 150 MAD** avec la source confidentielle. Finance reçoit un message d’abstention. Essayer A et B et ouvrir les citations depuis l’interface.
 
@@ -102,7 +102,7 @@ Pour reproduire la figure et le test de connexion sous Chrome, installer Matplot
 | B · 20 candidats | 100% | 98.0% | 0 | 0 | 1.72 s |
 | Référence hors ligne | 100% | 68.0% | 398 | 172 | 1.77 s |
 
-Les deux méthodes protégées ont retrouvé le document attendu pour les 290 questions répondables. Sur les 210 abstentions attendues, A en a produit 198 et B en a produit 200. Les réponses restantes ont utilisé des passages autorisés hors sujet.
+Les deux méthodes protégées ont retrouvé le document attendu pour les 290 questions répondables. Sur les 210 abstentions attendues, A en a produit 198 et B en a produit 200. Les réponses restantes ont utilisé des passages autorisés hors sujet. Sur ce corpus synthétique, le Recall@5 autorisé de B reste à 100 % dès 5 candidats, mais la part de requêtes recevant cinq sources autorisées (`five_sources_rate`) chute à 20,4 % pour 5 candidats et 70,4 % pour 20 candidats, contre 100 % pour A.
 
 Le [tableau par rôle](benchmarks/results/summary.csv), les [sorties par question](benchmarks/results/answers.jsonl) et le [manifeste de l’exécution](benchmarks/results/manifest.json) accompagnent ces mesures. Le [balayage des budgets](benchmarks/results/candidate_sweep.csv) est également disponible sous forme de [figure](benchmarks/results/candidate_sweep.svg). Un [contrôle de 30 sorties](benchmarks/results/sample_review.csv) documente un échantillon stratifié par rôle et résultat attendu.
 
