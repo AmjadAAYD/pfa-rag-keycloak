@@ -33,7 +33,7 @@ La Direction est un rôle transversal. Le corpus est réparti entre les quatre d
 
 Le [corpus JSON Lines](data/corpus.jsonl) contient 300 documents sur 25 projets fictifs communs aux quatre départements. Chaque ligne contient un document, son identifiant, son projet, son département, son niveau de confidentialité, ses rôles autorisés, son titre et son texte.
 
-Depuis la racine du dépôt, installer les dépendances avec `python -m pip install -r requirements.lock.txt`. Exécuter `python -m unittest discover -s tests -v` pour vérifier le corpus, les droits et les deux stratégies de recherche sur les cas Atlas. Pour régénérer le fichier à l’identique, utiliser la commande suivante, qui conserve les octets UTF-8 sur Windows.
+Depuis la racine du dépôt, installer les dépendances avec `python -m pip install -r requirements.lock.txt`. Exécuter `python -m unittest discover -s tests -v` pour vérifier le corpus, les droits, l’API, les deux stratégies de recherche et l’intégrité des artefacts de benchmark. Pour régénérer le fichier à l’identique, utiliser la commande suivante, qui conserve les octets UTF-8 sur Windows.
 
 ```powershell
 python -c "from pathlib import Path; import subprocess, sys; Path('data/corpus.jsonl').write_bytes(subprocess.check_output([sys.executable, 'generate_corpus.py']))"
@@ -81,6 +81,8 @@ Consulter [l’état des services](http://localhost:8000/readyz) et [le contrat 
 .\.venv\Scripts\python.exe -m benchmarks.run --output .pfa-state/evaluation
 .\.venv\Scripts\python.exe -m benchmarks.summarize .pfa-state/evaluation
 ```
+
+Les 23 tests unitaires — incluant [les vérifications d’artefacts](tests/test_benchmark_artifacts.py) (empreintes SHA-256 de `manifest.json`, reproductibilité des jeux de questions, cohérence des tableaux CSV et absence de fuite sur les méthodes protégées) — sont exécutés automatiquement sur `push` et `pull_request` via [le workflow GitHub Actions](.github/workflows/tests.yml) (`ubuntu-latest`, Python 3.12, `requirements.txt` ; `requirements.lock.txt` fige l’environnement Windows).
 
 Le jeu d’évaluation contient **500 questions**, à raison de 100 par rôle, et le jeu de calibration en contient 20. Le benchmark exécute A, B et une référence sans filtre sur le corpus synthétique. La référence est exécutée par le script local. Le budget par défaut de B est de 20 candidats pour un maximum de 5 sources autorisées. La mesure de sensibilité utilise 5, 10, 20, 50 et 300 candidats sur Qdrant 1.18.3.
 
